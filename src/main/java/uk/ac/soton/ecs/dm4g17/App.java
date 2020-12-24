@@ -64,9 +64,9 @@ public class App {
         int startingY = (image.height);
         int smallestDimension = Math.min(startingX, startingY);
 
-        //Extracts a square version of the image starting from the first pixel, located in top left(0,0)
+        //This will extract a square version of the image that extends width/2 and height/2 from the centre point
         //Uses smallest dimension of image as we are cropping the image and cant add any information to enlarge it
-        FImage squareVersionOfImage = image.extractROI(0,0,smallestDimension,smallestDimension);
+        FImage squareVersionOfImage = image.extractCenter(smallestDimension,smallestDimension);
 
         //Resizes to the passed required size
         return squareVersionOfImage.process(new ResizeProcessor(newSize, newSize));
