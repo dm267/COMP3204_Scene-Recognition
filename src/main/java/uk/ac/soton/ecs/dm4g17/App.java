@@ -4,6 +4,7 @@ import org.apache.commons.vfs2.FileSystemException;
 
 import org.openimaj.data.dataset.VFSGroupDataset;
 import org.openimaj.data.dataset.VFSListDataset;
+import org.openimaj.experiment.dataset.split.GroupedRandomSplitter;
 import org.openimaj.feature.FeatureExtractor;
 import org.openimaj.feature.FloatFV;
 import org.openimaj.feature.FloatFVComparison;
@@ -45,6 +46,10 @@ public class App {
         //Adding files to VFSDatasets
         VFSGroupDataset<FImage> trainingData = new VFSGroupDataset<>(trainingFile.getPath(), ImageUtilities.FIMAGE_READER);
         VFSListDataset<FImage> testingData = new VFSListDataset<>(testingFile.getPath(), ImageUtilities.FIMAGE_READER);
+		
+        //Not sure what parameters to pass this so Ijust put 0,0,0 for now
+        //GroupedRandomSplitter<String, FImage> spliter = new GroupedRandomSplitter<String,FImage>(trainingData, 0, 0, 0);
+
 
 		// Was thinking of creating an instance of a new TinyImage class but maybe the method at the bottom is calm?
         //FeatureExtractor<FloatFV, FImage> tinyImage = new TinyImage();
