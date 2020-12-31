@@ -1,11 +1,16 @@
 package uk.ac.soton.ecs.dm4g17;
 
 import org.apache.commons.vfs2.FileSystemException;
+
 import org.openimaj.data.dataset.VFSGroupDataset;
 import org.openimaj.data.dataset.VFSListDataset;
+import org.openimaj.feature.FeatureExtractor;
+import org.openimaj.feature.FloatFV;
+import org.openimaj.feature.FloatFVComparison;
 import org.openimaj.image.FImage;
 import org.openimaj.image.ImageUtilities;
 import org.openimaj.image.processing.resize.ResizeProcessor;
+import org.openimaj.ml.annotation.basic.KNNAnnotator;
 import org.springframework.util.ResourceUtils;
 
 import java.io.File;
@@ -41,10 +46,16 @@ public class App {
         VFSGroupDataset<FImage> trainingData = new VFSGroupDataset<>(trainingFile.getPath(), ImageUtilities.FIMAGE_READER);
         VFSListDataset<FImage> testingData = new VFSListDataset<>(testingFile.getPath(), ImageUtilities.FIMAGE_READER);
 
+		// Was thinking of creating an instance of a new TinyImage class but maybe the method at the bottom is calm?
+        //FeatureExtractor<FloatFV, FImage> tinyImage = new TinyImage();
+
         //Number of different scene classes to decide from
         int knnNumber = 15;
         //Size of tinyImage is 16*16, a 16 bit representation of original image
         int tinyImageSize = 16;
+        
+        //KNNAnnotator<FImage, String, FloatFV> knn = new KNNAnnotator<FImage, String, FloatFV>(tinyImage, FloatFVComparison.EUCLIDEAN, knnNumber);
+		//knn.train(trainingData);
 
         FImage oldImage = null;
         FImage newImage = null;
