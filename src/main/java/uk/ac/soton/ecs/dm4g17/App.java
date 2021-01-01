@@ -47,8 +47,8 @@ public class App {
         VFSGroupDataset<FImage> trainingData = new VFSGroupDataset<>(trainingFile.getPath(), ImageUtilities.FIMAGE_READER);
         VFSListDataset<FImage> testingData = new VFSListDataset<>(testingFile.getPath(), ImageUtilities.FIMAGE_READER);
 		
-        //Not sure what parameters to pass this so Ijust put 0,0,0 for now
-        //GroupedRandomSplitter<String, FImage> spliter = new GroupedRandomSplitter<String,FImage>(trainingData, 0, 0, 0);
+        //Not sure what parameters to pass this so I just put 0,0,0 for now
+        //GroupedRandomSplitter<String, FImage> splitter = new GroupedRandomSplitter<String,FImage>(trainingData, 0, 0, 0);
 
 
 		// Was thinking of creating an instance of a new TinyImage class but maybe the method at the bottom is calm?
