@@ -52,7 +52,7 @@ public class App {
 
 
 		// Was thinking of creating an instance of a new TinyImage class but maybe the method at the bottom is calm?
-        //FeatureExtractor<FloatFV, FImage> tinyImage = new TinyImage();
+        //FeatureExtractor<FloatFV, FImage> tinyImage = createTinyImage(,16);
 
         //Number of different scene classes to decide from
         int knnNumber = 15;
