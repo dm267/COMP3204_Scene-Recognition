@@ -38,6 +38,7 @@ import org.openimaj.ml.annotation.linear.LinearSVMAnnotator;
 import org.openimaj.ml.clustering.ByteCentroidsResult;
 import org.openimaj.ml.clustering.assignment.HardAssigner;
 import org.openimaj.ml.clustering.kmeans.ByteKMeans;
+import org.openimaj.ml.kernel.HomogeneousKernelMap;
 import org.openimaj.util.pair.IntFloatPair;
 import org.springframework.util.ResourceUtils;
 
@@ -71,158 +72,133 @@ import java.util.Map;
 public class App {
 
     public static void main( String[] args ) throws FileNotFoundException, FileSystemException {
-        setupClass("classpath:training.zip","classpath:testing.zip");
-
-
+        setupClass();
     }
 
 
 
-    public static void setupClass(String trainingFileLocation, String testFileLocation) throws FileSystemException, FileNotFoundException {
+    public static void setupClass() throws FileSystemException {
         System.out.println("Run 3 Initiated...");
 
-        //Retrieving files
-        File trainingFile = ResourceUtils.getFile(trainingFileLocation);
-        File testingFile  = ResourceUtils.getFile(testFileLocation);
-
-        //Files are found
-        System.out.println("File Found : " + trainingFile.exists());
-        System.out.println("File Found : " + testingFile.exists());
-
-        String test = trainingFile.getPath();
-        String test2 = testingFile.getPath();
-
-        //Adding files to VFSDatasets
-        //Path version
-        //VFSGroupDataset<FImage> trainingData = new VFSGroupDataset<>("C:\\Users\\Test\\Desktop\\11.12.20 Memory Pen Backup\\Uni Work\\Computer Vision Assignments\\CW3 - Group Project\\Run1\\src\\main\\resources\\training", ImageUtilities.FIMAGE_READER);
-        //VFSListDataset<FImage> testingData   = new VFSListDataset<>("C:\\Users\\Test\\Desktop\\11.12.20 Memory Pen Backup\\Uni Work\\Computer Vision Assignments\\CW3 - Group Project\\Run1\\src\\main\\resources\\testing", ImageUtilities.FIMAGE_READER);
-        //Specified Path Version
-        //VFSGroupDataset<FImage> trainingData = new VFSGroupDataset<>(test, ImageUtilities.FIMAGE_READER);
-        //VFSListDataset<FImage> testingData   = new VFSListDataset<>(test2, ImageUtilities.FIMAGE_READER);
-        //Url Version
+        //Adding files to VFSDatasets from their respective URL.
         VFSGroupDataset<FImage> trainingData = new VFSGroupDataset<>("zip:http://comp3204.ecs.soton.ac.uk/cw/training.zip", ImageUtilities.FIMAGE_READER);
-        VFSListDataset<FImage> testingData    = new VFSListDataset<>("zip:http://comp3204.ecs.soton.ac.uk/cw/testing.zip", ImageUtilities.FIMAGE_READER);
-        System.out.println("Size of training set: " + trainingData.size());
-        System.out.println("Size of training set: " + testingData.size());
-
-        //If we want a validation set we can use method below
-        //Splits passed dataset into trainingData, validationData, testData
-        //Training Dataset contains 15*100 = 1500 images
-        double trainingDataSize   = 1500*0.8;
-        double validationDataSize = 1500*0.2;
-        double testingDataSize    = 2985;
-        //GroupedRandomSplitter<String, FImage> splitter = new GroupedRandomSplitter<String,FImage>(trainingData, 0, 0, 0);
+        VFSListDataset<FImage> testingData   = new VFSListDataset<>("zip:http://comp3204.ecs.soton.ac.uk/cw/testing.zip", ImageUtilities.FIMAGE_READER);
 
         //Linear SVM Annotator
         //LinearSVMAnnotator<FImage, String> annotatorLinearSVM = new LinearSVMAnnotator<FImage, String>()
-
-        DenseSIFT dsift = new DenseSIFT(5, 7);
-        PyramidDenseSIFT<FImage> pdsift = new PyramidDenseSIFT<FImage>(dsift, 6f, 7);
-
         //annotatorLinearSVM.train(trainingData);
 
-        File fileDirectory = new File("C:\\Users\\Test\\Desktop\\11.12.20 Memory Pen Backup\\Uni Work\\Computer Vision Assignments\\CW3 - Group Project\\Run1\\src\\main\\cache");
+        DenseSIFT denseSIFT = new DenseSIFT(5, 7);
+        PyramidDenseSIFT<FImage> pyramidDenseSIFT = new PyramidDenseSIFT<FImage>(denseSIFT, 6f, 7);
 
-        HardAssigner<byte[], float[], IntFloatPair> assigner;
+        File fileDirectory = new File("C:\\CW3 - Group Project\\Run1\\src\\main\\cache");
+
+        //Creating/Accessing an already created assigner that can assign features to identifiers.
+        HardAssigner<byte[], float[], IntFloatPair> hardAssigner;
         try {
-            //Illegal reflective access operation has occurred - I think because I am trying to access a file here thats not already created?
-            assigner = IOUtils.readFromFile(fileDirectory);
+            //Illegal reflective access operation has occurred - This occurs when trying to access a file which is not already created.
+            hardAssigner = IOUtils.readFromFile(fileDirectory);
             System.out.println("Assigner read from: " +fileDirectory.toString());
         } catch (IOException e1) {
             System.out.println("Assigner not read from: " +fileDirectory.toString());
-            assigner = trainQuantiser(GroupedUniformRandomisedSampler.sample(trainingData, 30), pdsift);
+            hardAssigner = trainQuantiser(GroupedUniformRandomisedSampler.sample(trainingData, 30), pyramidDenseSIFT);
             try {
-                IOUtils.writeToFile(assigner,fileDirectory);
+                IOUtils.writeToFile(hardAssigner,fileDirectory);
                 System.out.println("Assigner saved to: " +fileDirectory.toString());
-            } catch (IOException e2)
-            {
+            } catch (IOException e2) {
                 System.out.println("Assigner not saved to: " +fileDirectory.toString());
             }
         }
 
+        //Pyramid Histogram Of Words - Currently not working
+        FeatureExtractor<DoubleFV, FImage> PHOWExtractor = new PHOWExtractor(pyramidDenseSIFT, hardAssigner);
+        //LiblinearAnnotator<FImage, String> annotatorPHOW = new LiblinearAnnotator<FImage, String>(PHOWExtractor, LiblinearAnnotator.Mode.MULTICLASS, SolverType.L2R_L2LOSS_SVC, 1.0, 0.00001);
+        //long totalTimePHOWExtractor = trainTimeEstimator(annotatorPHOW, trainingData);
+        //ClassificationEvaluator<CMResult<String>, String, FImage> PHOWeval = new ClassificationEvaluator<CMResult<String>, String, FImage>(annotatorPHOW, trainingData, new CMAnalyser<FImage, String>(CMAnalyser.Strategy.SINGLE));
+        //Map<FImage, ClassificationResult<String>> PHOWguesses = PHOWeval.evaluate();
+        //CMResult<String> PHOWresult = PHOWeval.analyse(PHOWguesses);
 
-        FeatureExtractor<DoubleFV, FImage> PHOWExtractor = new PHOWExtractor(pdsift, assigner);
-        LiblinearAnnotator<FImage, String> annotatorPHOW = new LiblinearAnnotator<FImage, String>(PHOWExtractor, LiblinearAnnotator.Mode.MULTICLASS, SolverType.L2R_L2LOSS_SVC, 1.0, 0.00001);
-        long totalTimePHOWExtractor = trainTimeEstimator(annotatorPHOW, trainingData);
-        ClassificationEvaluator<CMResult<String>, String, FImage> PHOWeval = new ClassificationEvaluator<CMResult<String>, String, FImage>(annotatorPHOW, trainingData, new CMAnalyser<FImage, String>(CMAnalyser.Strategy.SINGLE));
-        Map<FImage, ClassificationResult<String>> PHOWguesses = PHOWeval.evaluate();
-        CMResult<String> PHOWresult = PHOWeval.analyse(PHOWguesses);
-        System.out.println("PHOW" +PHOWresult);
-        System.out.println("Training time for PHOWExtractor: " +totalTimePHOWExtractor +"s");
+        //Homogeneous Kernel Map
+        //A Homogeneous Kernel Map transforms data into a compact linear representation such that applying a linear classifier approximates,
+        // to a high degree of accuracy, the application of a non-linear classifier over the original data.
+        HomogeneousKernelMap homogeneousKernelMap = new HomogeneousKernelMap(HomogeneousKernelMap.KernelType.Chi2, HomogeneousKernelMap.WindowType.Rectangular);
+        FeatureExtractor<DoubleFV, FImage> HKMExtractor = homogeneousKernelMap.createWrappedExtractor(PHOWExtractor);
+        LiblinearAnnotator<FImage, String> annotatorHKM = new LiblinearAnnotator<FImage, String>(HKMExtractor, LiblinearAnnotator.Mode.MULTICLASS, SolverType.L2R_L2LOSS_SVC, 1.0, 0.00001);
+        long totalTimeHKMExtractor = trainTimeEstimator(annotatorHKM, trainingData);
+        ClassificationEvaluator<CMResult<String>, String, FImage> HKMeval = new ClassificationEvaluator<CMResult<String>, String, FImage>(annotatorHKM, trainingData, new CMAnalyser<FImage, String>(CMAnalyser.Strategy.SINGLE));
+        Map<FImage, ClassificationResult<String>> HKMguesses = HKMeval.evaluate();
+        CMResult<String> HKMresult = HKMeval.analyse(HKMguesses);
 
+        //System.out.println("PHOW" +PHOWresult);
+        System.out.println("HKM" +HKMresult);
+        //System.out.println("Training time for PHOWExtractor: " +totalTimePHOWExtractor +"s");
+        System.out.println("Training time for PHOWExtractor: " +totalTimeHKMExtractor +"s");
     }
 
-    //Method to perform K-Means Clustering on a sample of SIFT features in order to build a HardAssigner that can assign features to identifiers
-    //Takes as input a dataset and a PyramidDenseSIFT object
-    static HardAssigner<byte[], float[], IntFloatPair> trainQuantiser(Dataset<FImage> sample, PyramidDenseSIFT<FImage> pdsift)
+    //Performs K-Means Clustering on a sample of SIFT features in order to build a HardAssigner that can assign features to identifiers.
+    static HardAssigner<byte[], float[], IntFloatPair> trainQuantiser(Dataset<FImage> sample, PyramidDenseSIFT<FImage> pyramidDenseSIFT)
     {
-        List<LocalFeatureList<ByteDSIFTKeypoint>> allkeys = new ArrayList<LocalFeatureList<ByteDSIFTKeypoint>>();
+        List<LocalFeatureList<ByteDSIFTKeypoint>> featureLists = new ArrayList<LocalFeatureList<ByteDSIFTKeypoint>>();
 
+        //Iterates through the sample dataset, analysing and adding the dense SIFT features to an arraylist
         for (FImage image : sample) {
-            pdsift.analyseImage(image);
-            allkeys.add(pdsift.getByteKeypoints(0.005f));
+            pyramidDenseSIFT.analyseImage(image);
+            featureLists.add(pyramidDenseSIFT.getByteKeypoints(0.005f));
         }
 
-        if (allkeys.size() > 10000)
-            allkeys = allkeys.subList(0, 10000);
+        //Extracts the first 10000 dense SIFT features from the provided image dataset/
+        if (featureLists.size() > 10000)
+            featureLists = featureLists.subList(0, 10000);
 
-        ByteKMeans km = ByteKMeans.createKDTreeEnsemble(300);
-        DataSource<byte[]> datasource = new LocalFeatureListDataSource<ByteDSIFTKeypoint, byte[]>(allkeys);
+        //Clusters the features into 300 separate classes/
+        ByteKMeans km = ByteKMeans.createKDTreeEnsemble(500);
+        DataSource<byte[]> datasource = new LocalFeatureListDataSource<ByteDSIFTKeypoint, byte[]>(featureLists);
         ByteCentroidsResult result = km.cluster(datasource);
 
+        //Returns a HardAssigner which is then used to assign SIFT features to identifiers.
         return result.defaultHardAssigner();
     }
 
     //FeatureExtractor implementation with which we train the classifier
     static class PHOWExtractor implements FeatureExtractor<DoubleFV, FImage> {
-        PyramidDenseSIFT<FImage> pdsift;
-        HardAssigner<byte[], float[], IntFloatPair> assigner;
+        PyramidDenseSIFT<FImage> pyramidDenseSIFT;
+        HardAssigner<byte[], float[], IntFloatPair> hardAssigner;
 
-        public PHOWExtractor(PyramidDenseSIFT<FImage> pdsift, HardAssigner<byte[], float[], IntFloatPair> assigner)
+        //Pyramid Histogram Of Words Extractor
+        public PHOWExtractor(PyramidDenseSIFT<FImage> pyramidDenseSIFT, HardAssigner<byte[], float[], IntFloatPair> hardAssigner)
         {
-            this.pdsift = pdsift;
-            this.assigner = assigner;
+            this.pyramidDenseSIFT = pyramidDenseSIFT;
+            this.hardAssigner = hardAssigner;
         }
 
+        //Extracts features from each image and builds Bag-Of-Visual-Words around it
         public DoubleFV extractFeature(FImage object) {
             FImage image = object.getImage();
-            pdsift.analyseImage(image);
+            pyramidDenseSIFT.analyseImage(image);
 
-            BagOfVisualWords<byte[]> bovw = new BagOfVisualWords<byte[]>(assigner);
-
+            //Bag-Of-Visual-Words
+            BagOfVisualWords<byte[]> bovw = new BagOfVisualWords<byte[]>(hardAssigner);
             BlockSpatialAggregator<byte[], SparseIntFV> spatial = new BlockSpatialAggregator<byte[], SparseIntFV>(
                     bovw, 2, 2);
-
-            return spatial.aggregate(pdsift.getByteKeypoints(0.015f), image.getBounds()).normaliseFV();
+            return spatial.aggregate(pyramidDenseSIFT.getByteKeypoints(0.015f), image.getBounds()).normaliseFV();
         }
     }
 
-    public static void setupClassifier()
-    {
-
-        //Linear SVM Annotator
-        LinearSVMAnnotator<FImage, String> annotatorLinearSVM;
-
-    }
-
-    public static void trainClassifier()
-    {
-        DenseSIFT dsift = new DenseSIFT(5, 7);
-        PyramidDenseSIFT<FImage> pdsift = new PyramidDenseSIFT<FImage>(dsift, 6f, 7);
-
-
-    }
-
-    public static void testClassifier()
-    {
-
-    }
-
-    public static long trainTimeEstimator(LiblinearAnnotator<FImage, String> ann, VFSGroupDataset<FImage> trainingData)
+    //Times how long it takes to train passed classifier
+    public static long trainTimeEstimator(LiblinearAnnotator<FImage, String> annotator, VFSGroupDataset<FImage> trainingData)
     {
         long startTime = System.nanoTime();
-        ann.train(trainingData);
+        System.out.println("Training Model...");
+        annotator.train(trainingData);
+        System.out.println("Model Trained Successfully.");
         long endTime = System.nanoTime();
         return (endTime - startTime) / 100000000;
     }
+
+    //Tests classifier on test dataset
+    public static void testClassifier(LiblinearAnnotator<FImage, String> annotator, VFSListDataset<FImage> testData)
+    {
+        //Produce output of tests into a .txt file
+    }
+
 }
