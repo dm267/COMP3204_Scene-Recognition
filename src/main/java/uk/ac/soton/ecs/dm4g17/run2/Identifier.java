@@ -39,7 +39,7 @@ public class Identifier {
             List<FImage> patchesOfImage;
 
             keypointList = new MemoryLocalFeatureList<>();
-            patchesOfImage = extractPatches.getExtractedPatchesImage(img);
+            patchesOfImage = extractPatches.getExtractedPatches(img);
 
             for (FImage patch : patchesOfImage)
             {

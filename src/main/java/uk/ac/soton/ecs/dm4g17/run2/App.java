@@ -89,7 +89,7 @@ public class App {
             BagOfVisualWords<float[]> bagOfVisualWords = new BagOfVisualWords<>(assigner);
 
             this.keypointList = new MemoryLocalFeatureList<>();
-            this.patchesOfImage = ep.getExtractedPatchesImage(image);
+            this.patchesOfImage = ep.getExtractedPatches(image);
             for (FImage patch : patchesOfImage)
             {
                 //not sure if I got the right float vector of the image
