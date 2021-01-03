@@ -35,8 +35,12 @@ public class Identifier {
                 new MemoryLocalFeatureList<>();
         for(FImage img: dataset)
         {
-            LocalFeatureList<FloatKeypoint> keypointList = new MemoryLocalFeatureList<>();
-            List<FImage> patchesOfImage = extractPatches.getExtractedPatches(img);
+            LocalFeatureList<FloatKeypoint> keypointList;
+            List<FImage> patchesOfImage;
+
+            keypointList = new MemoryLocalFeatureList<>();
+            patchesOfImage = extractPatches.getExtractedPatchesImage(img);
+
             for (FImage patch : patchesOfImage)
             {
                 //not sure if I got the right float vector of the image
