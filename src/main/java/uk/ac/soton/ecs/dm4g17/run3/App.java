@@ -165,7 +165,7 @@ public class App {
         if (featureLists.size() > 10000)
             featureLists = featureLists.subList(0, 10000);
 
-        //Clusters the features into 300 separate classes/
+        //Clusters the features into 500 separate classes/
         ByteKMeans km = ByteKMeans.createKDTreeEnsemble(500);
         DataSource<byte[]> datasource = new LocalFeatureListDataSource<ByteDSIFTKeypoint, byte[]>(featureLists);
         ByteCentroidsResult result = km.cluster(datasource);
