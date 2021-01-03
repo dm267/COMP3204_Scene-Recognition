@@ -3,9 +3,8 @@ package uk.ac.soton.ecs.dm4g17.run3;
 import de.bwaldvogel.liblinear.SolverType;
 import org.apache.commons.vfs2.FileSystemException;
 import org.openimaj.data.DataSource;
-import org.openimaj.data.dataset.Dataset;
-import org.openimaj.data.dataset.VFSGroupDataset;
-import org.openimaj.data.dataset.VFSListDataset;
+import org.openimaj.data.dataset.*;
+import org.openimaj.experiment.dataset.sampling.GroupSampler;
 import org.openimaj.experiment.dataset.sampling.GroupedUniformRandomisedSampler;
 import org.openimaj.experiment.dataset.split.GroupedRandomSplitter;
 import org.openimaj.experiment.evaluation.classification.ClassificationEvaluator;
@@ -48,6 +47,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
     /*
     Run #3: You should try to develop the best classifier you can!
@@ -81,9 +81,18 @@ public class App {
         System.out.println("Run 3 Initiated...");
 
         //Adding files to VFSDatasets from their respective URL.
-        VFSGroupDataset<FImage> trainingData = new VFSGroupDataset<>("zip:http://comp3204.ecs.soton.ac.uk/cw/training.zip", ImageUtilities.FIMAGE_READER);
-        VFSListDataset<FImage> testingData   = new VFSListDataset<>("zip:http://comp3204.ecs.soton.ac.uk/cw/testing.zip", ImageUtilities.FIMAGE_READER);
+        System.out.println("Downloading datasets..");
+        VFSGroupDataset<FImage> trainingData = new VFSGroupDataset<FImage>("C:\\Users\\Test\\Desktop\\training", ImageUtilities.FIMAGE_READER);
+        //VFSGroupDataset includes each instance with a training label and also its expected name therefore we need to remove all training instances
+        trainingData.remove("training");
 
+        VFSListDataset<FImage> testingData   = new VFSListDataset<FImage>("C:\\Users\\Test\\Desktop\\testing", ImageUtilities.FIMAGE_READER);
+        System.out.println("Datasets downloaded.");
+
+        System.out.println("Size of training class: " + trainingData.numInstances());
+        System.out.println("Size of testing class: " + testingData.numInstances());
+
+        //GroupedRandomSplitter<String, FImage> splits = new GroupedRandomSplitter<String, FImage>(trainingDataL, 1200, 0, 300);
         //Linear SVM Annotator
         //LinearSVMAnnotator<FImage, String> annotatorLinearSVM = new LinearSVMAnnotator<FImage, String>()
         //annotatorLinearSVM.train(trainingData);
@@ -125,8 +134,14 @@ public class App {
         FeatureExtractor<DoubleFV, FImage> HKMExtractor = homogeneousKernelMap.createWrappedExtractor(PHOWExtractor);
         LiblinearAnnotator<FImage, String> annotatorHKM = new LiblinearAnnotator<FImage, String>(HKMExtractor, LiblinearAnnotator.Mode.MULTICLASS, SolverType.L2R_L2LOSS_SVC, 1.0, 0.00001);
         long totalTimeHKMExtractor = trainTimeEstimator(annotatorHKM, trainingData);
-        ClassificationEvaluator<CMResult<String>, String, FImage> HKMeval = new ClassificationEvaluator<CMResult<String>, String, FImage>(annotatorHKM, trainingData, new CMAnalyser<FImage, String>(CMAnalyser.Strategy.SINGLE));
+
+        System.out.println("Starting classification");
+        ClassificationEvaluator<CMResult<String>, String, FImage> HKMeval = new ClassificationEvaluator<CMResult<String>, String, FImage>(annotatorHKM, (Map<FImage, Set<String>>) testingData, new CMAnalyser<FImage, String>(CMAnalyser.Strategy.SINGLE));
+
+        System.out.println("Starting evaluation");
         Map<FImage, ClassificationResult<String>> HKMguesses = HKMeval.evaluate();
+
+        System.out.println("Analysing results");
         CMResult<String> HKMresult = HKMeval.analyse(HKMguesses);
 
         //System.out.println("PHOW" +PHOWresult);
@@ -176,7 +191,7 @@ public class App {
             FImage image = object.getImage();
             pyramidDenseSIFT.analyseImage(image);
 
-            //Bag-Of-Visual-Words
+            //Bag-Of-Visual-Words //Change Y-Block to 4 and re-test performance
             BagOfVisualWords<byte[]> bovw = new BagOfVisualWords<byte[]>(hardAssigner);
             BlockSpatialAggregator<byte[], SparseIntFV> spatial = new BlockSpatialAggregator<byte[], SparseIntFV>(
                     bovw, 2, 2);
