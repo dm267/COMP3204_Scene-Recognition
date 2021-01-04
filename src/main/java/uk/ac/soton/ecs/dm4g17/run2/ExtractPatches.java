@@ -19,6 +19,7 @@ public class ExtractPatches {
     public ExtractPatches(int patchSize, int patchDistance) {
         this.patchSize = patchSize;
         this.patchDistance = patchDistance;
+        System.out.println("ExtractPatches constructor made");
     }
 
     /*
@@ -26,6 +27,7 @@ public class ExtractPatches {
     returns a List of normalised patches from the input image.
      */
     public List<FImage> getExtractedPatches(FImage image) {
+        System.out.println("getExtractedPatches() method called");
         List<FImage> patches = new ArrayList<>();
         //height of the image
         int imageHeight = image.getHeight();
@@ -40,6 +42,7 @@ public class ExtractPatches {
                 patches.add(patch);
             }
         }
+        System.out.println("Returned list of FImages with the extracted patches");
         return patches;
     }
 
