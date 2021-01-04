@@ -84,7 +84,7 @@ public class Run1 {
 //        ArrayList<String> trainingScenes = new ArrayList<String>();
         
         // Loop through images/scenes within sub directories and add them to an ArrayList
-//       for(String scenes : trainingData.getGroups()) {
+//             for(String scenes : trainingData.getGroups()) {
 //        	
 //        	    trainingScenes.add(scenes);
 //
