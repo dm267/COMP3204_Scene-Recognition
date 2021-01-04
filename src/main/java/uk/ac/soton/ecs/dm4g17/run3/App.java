@@ -48,25 +48,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-    /*
-//    Run #3: You should try to develop the best classifier you can!
-//        You can choose whatever feature, encoding and classifier you like.
-//
-//    Potential features: the GIST feature; Dense SIFT; Dense SIFT in a Gaussian Pyramid;
-//        Dense SIFT with spatial pooling (i.e. PHOW as in the OpenIMAJ tutorial),
-//        etc. Potential classifiers: Naive bayes; non-linear SVM (perhaps using a linear classifier with a Homogeneous Kernel Map),
-//
-//     … Note: you don’t have to use OpenIMAJ for this run if you don’t want to
-//        (for example you might want to try and use a deep learning framework instead).
-//    */
-//
-//    //Features:
-//    //      = Dense SIFT;
-//    //      = Dense SIFT in a Gaussian Pyramid;
-//    //      = Dense SIFT with spatial pooling (i.e. PHOW as in the OpenIMAJ tutorial)
-//    //With classifier:
-//    //      = Linear SVM with a Homogeneous Kernel Map
-
 
 public class App {
 
