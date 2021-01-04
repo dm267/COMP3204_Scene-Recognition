@@ -80,19 +80,19 @@ public class Run1 {
         //System.out.println(testingData.numInstances());
 
         // Needed otherwise training set appears to be only 15 due to scene sub-folders
-        ArrayList<FImage> trainingImages = new ArrayList<FImage>();
-        ArrayList<String> trainingScenes = new ArrayList<String>();
+//       ArrayList<FImage> trainingImages = new ArrayList<FImage>();
+//        ArrayList<String> trainingScenes = new ArrayList<String>();
         
         // Loop through images/scenes within sub directories and add them to an ArrayList
-        for(String scenes : trainingData.getGroups()) {
-        	
-        	    trainingScenes.add(scenes);
-
-        // Adds every image found in each sub directory within the training folder to an ArrayList
-        	    for(FImage image : trainingData.getInstances(scenes)) {
-        		trainingImages.add(image);
-        	}
-        }
+//       for(String scenes : trainingData.getGroups()) {
+//        	
+//        	    trainingScenes.add(scenes);
+//
+//       // Adds every image found in each sub directory within the training folder to an ArrayList
+//       	    for(FImage image : trainingData.getInstances(scenes)) {
+//        		trainingImages.add(image);
+//       	}
+//        }
          
         //System.out.println(trainingData.getGroups().size());
         //System.out.println(testingData.size());
