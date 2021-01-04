@@ -1,5 +1,9 @@
 package uk.ac.soton.ecs.dm4g17.run2;
 
+import org.openimaj.feature.FloatFV;
+import org.openimaj.feature.local.LocalFeature;
+import org.openimaj.feature.local.LocalFeatureImpl;
+import org.openimaj.feature.local.SpatialLocation;
 import org.openimaj.image.FImage;
 
 import java.util.ArrayList;
@@ -38,4 +42,5 @@ public class ExtractPatches {
         }
         return patches;
     }
+
 }
