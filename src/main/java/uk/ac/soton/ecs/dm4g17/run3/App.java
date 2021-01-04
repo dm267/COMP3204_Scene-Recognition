@@ -41,9 +41,7 @@ import org.openimaj.ml.kernel.HomogeneousKernelMap;
 import org.openimaj.util.pair.IntFloatPair;
 import org.springframework.util.ResourceUtils;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -92,13 +90,15 @@ public class App {
         System.out.println("Size of training class: " + trainingData.numInstances());
         System.out.println("Size of testing class: " + testingData.numInstances());
 
-        //GroupedRandomSplitter<String, FImage> splits = new GroupedRandomSplitter<String, FImage>(trainingDataL, 1200, 0, 300);
-        //Linear SVM Annotator
-        //LinearSVMAnnotator<FImage, String> annotatorLinearSVM = new LinearSVMAnnotator<FImage, String>()
-        //annotatorLinearSVM.train(trainingData);
+        GroupedDataset<String, ListDataset<FImage>, FImage> groupedDataset = GroupSampler.sample(trainingData, 15, false);
+        GroupedRandomSplitter<String, FImage> splits = new GroupedRandomSplitter<String, FImage>(groupedDataset, 12, 0, 3);
 
+        GroupedDataset<String, ListDataset<FImage>, FImage> trainingSet    = splits.getTrainingDataset();
+        GroupedDataset<String, ListDataset<FImage>, FImage> testSet         = splits.getTestDataset();
+
+        //Try step=4 & binsize=8
         DenseSIFT denseSIFT = new DenseSIFT(5, 7);
-        PyramidDenseSIFT<FImage> pyramidDenseSIFT = new PyramidDenseSIFT<FImage>(denseSIFT, 6f, 7);
+        PyramidDenseSIFT<FImage> pyramidDenseSIFT = new PyramidDenseSIFT<FImage>(denseSIFT, 6f, 2,4,6,8);
 
         File fileDirectory = new File("C:\\CW3 - Group Project\\Run1\\src\\main\\cache");
 
@@ -110,7 +110,7 @@ public class App {
             System.out.println("Assigner read from: " +fileDirectory.toString());
         } catch (IOException e1) {
             System.out.println("Assigner not read from: " +fileDirectory.toString());
-            hardAssigner = trainQuantiser(GroupedUniformRandomisedSampler.sample(trainingData, 30), pyramidDenseSIFT);
+            hardAssigner = trainQuantiser(GroupedUniformRandomisedSampler.sample(splits.getTrainingDataset(), 30), pyramidDenseSIFT);
             try {
                 IOUtils.writeToFile(hardAssigner,fileDirectory);
                 System.out.println("Assigner saved to: " +fileDirectory.toString());
@@ -133,10 +133,10 @@ public class App {
         HomogeneousKernelMap homogeneousKernelMap = new HomogeneousKernelMap(HomogeneousKernelMap.KernelType.Chi2, HomogeneousKernelMap.WindowType.Rectangular);
         FeatureExtractor<DoubleFV, FImage> HKMExtractor = homogeneousKernelMap.createWrappedExtractor(PHOWExtractor);
         LiblinearAnnotator<FImage, String> annotatorHKM = new LiblinearAnnotator<FImage, String>(HKMExtractor, LiblinearAnnotator.Mode.MULTICLASS, SolverType.L2R_L2LOSS_SVC, 1.0, 0.00001);
-        long totalTimeHKMExtractor = trainTimeEstimator(annotatorHKM, trainingData);
+        long totalTimeHKMExtractor = trainTimeEstimator(annotatorHKM, splits);
 
         System.out.println("Starting classification");
-        ClassificationEvaluator<CMResult<String>, String, FImage> HKMeval = new ClassificationEvaluator<CMResult<String>, String, FImage>(annotatorHKM, (Map<FImage, Set<String>>) testingData, new CMAnalyser<FImage, String>(CMAnalyser.Strategy.SINGLE));
+        ClassificationEvaluator<CMResult<String>, String, FImage> HKMeval = new ClassificationEvaluator<CMResult<String>, String, FImage>(annotatorHKM, testSet, new CMAnalyser<FImage, String>(CMAnalyser.Strategy.SINGLE));
 
         System.out.println("Starting evaluation");
         Map<FImage, ClassificationResult<String>> HKMguesses = HKMeval.evaluate();
@@ -146,6 +146,8 @@ public class App {
 
         //System.out.println("PHOW" +PHOWresult);
         System.out.println("HKM" +HKMresult);
+        System.out.println(HKMresult.getDetailReport());
+
         //System.out.println("Training time for PHOWExtractor: " +totalTimePHOWExtractor +"s");
         System.out.println("Training time for PHOWExtractor: " +totalTimeHKMExtractor +"s");
     }
@@ -200,20 +202,31 @@ public class App {
     }
 
     //Times how long it takes to train passed classifier
-    public static long trainTimeEstimator(LiblinearAnnotator<FImage, String> annotator, VFSGroupDataset<FImage> trainingData)
+    public static long trainTimeEstimator(LiblinearAnnotator<FImage, String> annotator, GroupedRandomSplitter<String, FImage> splits)
     {
         long startTime = System.nanoTime();
         System.out.println("Training Model...");
-        annotator.train(trainingData);
+        annotator.train(splits.getTrainingDataset());
         System.out.println("Model Trained Successfully.");
         long endTime = System.nanoTime();
         return (endTime - startTime) / 100000000;
     }
 
     //Tests classifier on test dataset
-    public static void testClassifier(LiblinearAnnotator<FImage, String> annotator, VFSListDataset<FImage> testData)
+    public static void testClassifier(LiblinearAnnotator<FImage, String> annotator, GroupedRandomSplitter<String, FImage> splits)
     {
         //Produce output of tests into a .txt file
+        String nameOfResultsFile = "run3.txt";
+        File outputFile = new File(nameOfResultsFile);
+        try {
+            BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
+
+
+            //bw.write()
+            bw.close();
+        } catch (IOException e) {
+            System.out.println("Cannot Write Run3 Results to File!");
+        }
     }
 
 }

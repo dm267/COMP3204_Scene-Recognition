@@ -45,7 +45,7 @@ public class App {
         System.out.println("File Found : " + testFile.exists());
 
         //Adding files to VFSDatasets
-        VFSGroupDataset<FImage> trainingData = new VFSGroupDataset<>(trainFile.getPath(), ImageUtilities.FIMAGE_READER);
+        VFSGroupDataset<FImage> trainingData = new VFSGroupDataset<>("C:\\Users\\Test\\Desktop\\training", ImageUtilities.FIMAGE_READER);
         VFSListDataset<FImage> testingData = new VFSListDataset<>(testFile.getPath(), ImageUtilities.FIMAGE_READER);
 
         //making a patch extractor
