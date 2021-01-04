@@ -91,9 +91,9 @@ public class App {
         System.out.println("Size of testing class: " + testingData.numInstances());
 
         GroupedDataset<String, ListDataset<FImage>, FImage> groupedDataset = GroupSampler.sample(trainingData, 15, false);
-        GroupedRandomSplitter<String, FImage> splits = new GroupedRandomSplitter<String, FImage>(groupedDataset, 40, 0, 20);
+        GroupedRandomSplitter<String, FImage> splits = new GroupedRandomSplitter<String, FImage>(groupedDataset, 80, 0, 20);
 
-        GroupedDataset<String, ListDataset<FImage>, FImage> trainingSet    = splits.getTrainingDataset();
+        GroupedDataset<String, ListDataset<FImage>, FImage> trainingSet     = splits.getTrainingDataset();
         GroupedDataset<String, ListDataset<FImage>, FImage> testSet         = splits.getTestDataset();
 
         //Try step=4 & binsize=8
@@ -110,7 +110,7 @@ public class App {
             System.out.println("Assigner read from: " +fileDirectory.toString());
         } catch (IOException e1) {
             System.out.println("Assigner not read from: " +fileDirectory.toString());
-            hardAssigner = trainQuantiser(GroupedUniformRandomisedSampler.sample(splits.getTrainingDataset(), 30), pyramidDenseSIFT);
+            hardAssigner = trainQuantiser(GroupedUniformRandomisedSampler.sample(trainingSet, 30), pyramidDenseSIFT);
             try {
                 IOUtils.writeToFile(hardAssigner,fileDirectory);
                 System.out.println("Assigner saved to: " +fileDirectory.toString());
@@ -134,6 +134,7 @@ public class App {
         FeatureExtractor<DoubleFV, FImage> HKMExtractor = homogeneousKernelMap.createWrappedExtractor(PHOWExtractor);
         LiblinearAnnotator<FImage, String> annotatorHKM = new LiblinearAnnotator<FImage, String>(HKMExtractor, LiblinearAnnotator.Mode.MULTICLASS, SolverType.L2R_L2LOSS_SVC, 1.0, 0.00001);
         long totalTimeHKMExtractor = trainTimeEstimator(annotatorHKM, splits);
+        System.out.println("Training time for HKMExtractor: " +totalTimeHKMExtractor +"s");
 
         System.out.println("Starting classification");
         ClassificationEvaluator<CMResult<String>, String, FImage> HKMeval = new ClassificationEvaluator<CMResult<String>, String, FImage>(annotatorHKM, testSet, new CMAnalyser<FImage, String>(CMAnalyser.Strategy.SINGLE));
@@ -149,7 +150,9 @@ public class App {
         System.out.println(HKMresult.getDetailReport());
 
         //System.out.println("Training time for PHOWExtractor: " +totalTimePHOWExtractor +"s");
-        System.out.println("Training time for HKMExtractor: " +totalTimeHKMExtractor +"s");
+
+
+        testClassifier(annotatorHKM,splits,testingData);
     }
 
     //Performs K-Means Clustering on a sample of SIFT features in order to build a HardAssigner that can assign features to identifiers.
@@ -205,7 +208,7 @@ public class App {
     public static long trainTimeEstimator(LiblinearAnnotator<FImage, String> annotator, GroupedRandomSplitter<String, FImage> splits)
     {
         long startTime = System.nanoTime();
-        System.out.println("Training Model...");
+        System.out.println("Training Model for Labelled Test Set...");
         annotator.train(splits.getTrainingDataset());
         System.out.println("Model Trained Successfully.");
         long endTime = System.nanoTime();
@@ -213,17 +216,38 @@ public class App {
     }
 
     //Tests classifier on test dataset
-    public static void testClassifier(LiblinearAnnotator<FImage, String> annotator, GroupedRandomSplitter<String, FImage> splits)
+    public static void testClassifier(LiblinearAnnotator<FImage, String> annotator, GroupedRandomSplitter<String, FImage> splits, VFSListDataset<FImage> unlabeledTestSet)
     {
+
+        System.out.println("Training Model for Unlabeled Test Set...");
+        annotator.train(splits.getTrainingDataset());
+        System.out.println("Model Trained Successfully.");
+
+        int sizeOfTestSet = unlabeledTestSet.numInstances();
+        System.out.println("Cannot Write Run3 Results to File!");
+
         //Produce output of tests into a .txt file
         String nameOfResultsFile = "run3.txt";
+
+        //Strings
+        String classification;
+        String fileName;
+
+        //File to write
         File outputFile = new File(nameOfResultsFile);
+
         try {
-            BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
-
-
-            //bw.write()
-            bw.close();
+            System.out.println("Writing Run3 Classification Results to " +nameOfResultsFile +" located at " +outputFile);
+            BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile));
+            for (int i = 0; i < sizeOfTestSet; i++)
+            {
+                FImage testImage = unlabeledTestSet.getInstance(i);
+                fileName = unlabeledTestSet.getID(i);
+                classification = String.valueOf(annotator.classify(testImage));
+                writer.write(fileName +" " +classification +"\n");
+            }
+            writer.close();
+            System.out.println("Successfully written Run3 Classification Results to " +nameOfResultsFile +" located at " +outputFile.getPath());
         } catch (IOException e) {
             System.out.println("Cannot Write Run3 Results to File!");
         }
