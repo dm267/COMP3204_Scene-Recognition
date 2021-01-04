@@ -23,6 +23,7 @@ public class Identifier {
     {
         this.dataset = dataset;
         this.extractPatches = extractPatches;
+        System.out.println("Identifier constructor made");
     }
     /*
         perform K-Means clustering in order to build
@@ -50,6 +51,7 @@ public class Identifier {
             }
             allKeys.addAll(keypointList);
         }
+        System.out.println("Features extracted");
         if (allKeys.size() > 10000)
         {
             allKeys = allKeys.subList(0, 10000);
@@ -57,8 +59,10 @@ public class Identifier {
 
         //clusters the features into 500 separate classes
         FloatKMeans km = FloatKMeans.createKDTreeEnsemble(500);
+        System.out.println("Features clustered into 500 separate classes");
         DataSource<float[]> datasource = new LocalFeatureListDataSource<>(allKeys);
         FloatCentroidsResult result = km.cluster(datasource);
+        System.out.println("Returning HardAssigner");
         return result.defaultHardAssigner();
     }
 }
