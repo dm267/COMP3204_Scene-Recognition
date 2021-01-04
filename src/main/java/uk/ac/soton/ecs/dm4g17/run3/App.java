@@ -1,6 +1,7 @@
 package uk.ac.soton.ecs.dm4g17.run3;
 
 import de.bwaldvogel.liblinear.SolverType;
+import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.openimaj.data.DataSource;
 import org.openimaj.data.dataset.*;
@@ -48,23 +49,23 @@ import java.util.Map;
 import java.util.Set;
 
     /*
-    Run #3: You should try to develop the best classifier you can!
-        You can choose whatever feature, encoding and classifier you like.
-
-    Potential features: the GIST feature; Dense SIFT; Dense SIFT in a Gaussian Pyramid;
-        Dense SIFT with spatial pooling (i.e. PHOW as in the OpenIMAJ tutorial),
-        etc. Potential classifiers: Naive bayes; non-linear SVM (perhaps using a linear classifier with a Homogeneous Kernel Map),
-
-     … Note: you don’t have to use OpenIMAJ for this run if you don’t want to
-        (for example you might want to try and use a deep learning framework instead).
-    */
-
-    //Features:
-    //      = Dense SIFT;
-    //      = Dense SIFT in a Gaussian Pyramid;
-    //      = Dense SIFT with spatial pooling (i.e. PHOW as in the OpenIMAJ tutorial)
-    //With classifier:
-    //      = Linear SVM with a Homogeneous Kernel Map
+//    Run #3: You should try to develop the best classifier you can!
+//        You can choose whatever feature, encoding and classifier you like.
+//
+//    Potential features: the GIST feature; Dense SIFT; Dense SIFT in a Gaussian Pyramid;
+//        Dense SIFT with spatial pooling (i.e. PHOW as in the OpenIMAJ tutorial),
+//        etc. Potential classifiers: Naive bayes; non-linear SVM (perhaps using a linear classifier with a Homogeneous Kernel Map),
+//
+//     … Note: you don’t have to use OpenIMAJ for this run if you don’t want to
+//        (for example you might want to try and use a deep learning framework instead).
+//    */
+//
+//    //Features:
+//    //      = Dense SIFT;
+//    //      = Dense SIFT in a Gaussian Pyramid;
+//    //      = Dense SIFT with spatial pooling (i.e. PHOW as in the OpenIMAJ tutorial)
+//    //With classifier:
+//    //      = Linear SVM with a Homogeneous Kernel Map
 
 
 public class App {
@@ -76,19 +77,20 @@ public class App {
 
 
     public static void setupClass() throws FileSystemException {
+
         System.out.println("Run 3 Initiated...");
 
         //Adding files to VFSDatasets from their respective URL.
         System.out.println("Downloading datasets..");
         VFSGroupDataset<FImage> trainingData = new VFSGroupDataset<FImage>("C:\\Users\\Test\\Desktop\\training", ImageUtilities.FIMAGE_READER);
         //VFSGroupDataset includes each instance with a training label and also its expected name therefore we need to remove all training instances
-        trainingData.remove("training");
+        //trainingData.remove("training");
 
         VFSListDataset<FImage> testingData   = new VFSListDataset<FImage>("C:\\Users\\Test\\Desktop\\testing", ImageUtilities.FIMAGE_READER);
         System.out.println("Datasets downloaded.");
 
         System.out.println("Size of training class: " + trainingData.numInstances());
-        System.out.println("Size of testing class: " + testingData.numInstances());
+        System.out.println("Size of testing class: "  + testingData.numInstances());
 
         GroupedDataset<String, ListDataset<FImage>, FImage> groupedDataset = GroupSampler.sample(trainingData, 15, false);
         GroupedRandomSplitter<String, FImage> splits = new GroupedRandomSplitter<String, FImage>(groupedDataset, 80, 0, 20);
@@ -97,7 +99,7 @@ public class App {
         GroupedDataset<String, ListDataset<FImage>, FImage> testSet         = splits.getTestDataset();
 
         //Try step=4 & binsize=8
-        DenseSIFT denseSIFT = new DenseSIFT(5, 7);
+        DenseSIFT denseSIFT = new DenseSIFT(4, 8);
         PyramidDenseSIFT<FImage> pyramidDenseSIFT = new PyramidDenseSIFT<FImage>(denseSIFT, 6f, 2,4,6,8);
 
         File fileDirectory = new File("C:\\CW3 - Group Project\\Run1\\src\\main\\cache");
@@ -105,52 +107,48 @@ public class App {
         //Creating/Accessing an already created assigner that can assign features to identifiers.
         HardAssigner<byte[], float[], IntFloatPair> hardAssigner;
         try {
-            //Illegal reflective access operation has occurred - This occurs when trying to access a file which is not already created.
+            //Illegal reflective access operation has occurred due to accessing a file which is not already created.
             hardAssigner = IOUtils.readFromFile(fileDirectory);
-            System.out.println("Assigner read from: " +fileDirectory.toString());
+            System.out.println("Assigner read from: "        +fileDirectory.toString());
         } catch (IOException e1) {
-            System.out.println("Assigner not read from: " +fileDirectory.toString());
+            System.out.println("Assigner not read from: "    +fileDirectory.toString());
             hardAssigner = trainQuantiser(GroupedUniformRandomisedSampler.sample(trainingSet, 30), pyramidDenseSIFT);
             try {
-                IOUtils.writeToFile(hardAssigner,fileDirectory);
-                System.out.println("Assigner saved to: " +fileDirectory.toString());
+                IOUtils.writeToFile(hardAssigner, fileDirectory);
+                System.out.println("Assigner saved to: "     +fileDirectory.toString());
             } catch (IOException e2) {
                 System.out.println("Assigner not saved to: " +fileDirectory.toString());
             }
         }
 
-        //Pyramid Histogram Of Words - Currently not working
-        FeatureExtractor<DoubleFV, FImage> PHOWExtractor = new PHOWExtractor(pyramidDenseSIFT, hardAssigner);
-        //LiblinearAnnotator<FImage, String> annotatorPHOW = new LiblinearAnnotator<FImage, String>(PHOWExtractor, LiblinearAnnotator.Mode.MULTICLASS, SolverType.L2R_L2LOSS_SVC, 1.0, 0.00001);
-        //long totalTimePHOWExtractor = trainTimeEstimator(annotatorPHOW, trainingData);
-        //ClassificationEvaluator<CMResult<String>, String, FImage> PHOWeval = new ClassificationEvaluator<CMResult<String>, String, FImage>(annotatorPHOW, trainingData, new CMAnalyser<FImage, String>(CMAnalyser.Strategy.SINGLE));
-        //Map<FImage, ClassificationResult<String>> PHOWguesses = PHOWeval.evaluate();
-        //CMResult<String> PHOWresult = PHOWeval.analyse(PHOWguesses);
+        //Creates Homogeneous Kernel Map
+        //This map transforms data into a linear representation so that a linear classifier can produce a non-linear classifiers results to a high degree of accuracy.
+        HomogeneousKernelMap homogeneousKernelMap = new HomogeneousKernelMap(
+                HomogeneousKernelMap.KernelType.Chi2, HomogeneousKernelMap.WindowType.Rectangular);
 
-        //Homogeneous Kernel Map
-        //A Homogeneous Kernel Map transforms data into a compact linear representation such that applying a linear classifier approximates,
-        // to a high degree of accuracy, the application of a non-linear classifier over the original data.
-        HomogeneousKernelMap homogeneousKernelMap = new HomogeneousKernelMap(HomogeneousKernelMap.KernelType.Chi2, HomogeneousKernelMap.WindowType.Rectangular);
+        //Pyramid Histogram Of Words Extractor
+        FeatureExtractor<DoubleFV, FImage> PHOWExtractor = new PHOWExtractor(pyramidDenseSIFT, hardAssigner);
+        //Wraps the Pyramid Histogram Of Words Extractor for the Homogeneous Kernel Map
         FeatureExtractor<DoubleFV, FImage> HKMExtractor = homogeneousKernelMap.createWrappedExtractor(PHOWExtractor);
-        LiblinearAnnotator<FImage, String> annotatorHKM = new LiblinearAnnotator<FImage, String>(HKMExtractor, LiblinearAnnotator.Mode.MULTICLASS, SolverType.L2R_L2LOSS_SVC, 1.0, 0.00001);
+
+        //Creates a linear classifier which takes in the Homogeneous Kernel Map Extractor and sets the classifier to MULTICLASS mode as there are 15 different classes
+        LiblinearAnnotator<FImage, String> annotatorHKM = new LiblinearAnnotator<FImage, String>(
+                HKMExtractor, LiblinearAnnotator.Mode.MULTICLASS, SolverType.L2R_L2LOSS_SVC, 1.0, 0.00001);
+
+        //Train classifier and time how long it takes
         long totalTimeHKMExtractor = trainTimeEstimator(annotatorHKM, splits);
         System.out.println("Training time for HKMExtractor: " +totalTimeHKMExtractor +"s");
 
         System.out.println("Starting classification");
-        ClassificationEvaluator<CMResult<String>, String, FImage> HKMeval = new ClassificationEvaluator<CMResult<String>, String, FImage>(annotatorHKM, testSet, new CMAnalyser<FImage, String>(CMAnalyser.Strategy.SINGLE));
+        ClassificationEvaluator<CMResult<String>, String, FImage> HKMeval = new ClassificationEvaluator<CMResult<String>, String, FImage>(
+                annotatorHKM, testSet, new CMAnalyser<FImage, String>(CMAnalyser.Strategy.SINGLE));
 
         System.out.println("Starting evaluation");
         Map<FImage, ClassificationResult<String>> HKMguesses = HKMeval.evaluate();
 
         System.out.println("Analysing results");
         CMResult<String> HKMresult = HKMeval.analyse(HKMguesses);
-
-        //System.out.println("PHOW" +PHOWresult);
-        System.out.println("HKM" +HKMresult);
         System.out.println(HKMresult.getDetailReport());
-
-        //System.out.println("Training time for PHOWExtractor: " +totalTimePHOWExtractor +"s");
-
 
         testClassifier(annotatorHKM,splits,testingData);
     }
@@ -224,33 +222,31 @@ public class App {
         System.out.println("Model Trained Successfully.");
 
         int sizeOfTestSet = unlabeledTestSet.numInstances();
-        System.out.println("Cannot Write Run3 Results to File!");
-
-        //Produce output of tests into a .txt file
-        String nameOfResultsFile = "run3.txt";
 
         //Strings
         String classification;
         String fileName;
 
         //File to write
-        File outputFile = new File(nameOfResultsFile);
+        File outputFile = new File("/COMP3204_CW3/run3.txt");
+        FileObject[] files = unlabeledTestSet.getFileObjects();
 
         try {
-            System.out.println("Writing Run3 Classification Results to " +nameOfResultsFile +" located at " +outputFile);
-            BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile));
+            System.out.println("Writing Run3 Classification Results to '" +outputFile.getName() +"' located at '" +outputFile.getPath() +"'");
+            //Creates a file named run3.txt where we write our predictions for each run
+            PrintWriter writer = new PrintWriter("run3.txt");
+
             for (int i = 0; i < sizeOfTestSet; i++)
             {
-                FImage testImage = unlabeledTestSet.getInstance(i);
-                fileName = unlabeledTestSet.getID(i);
-                classification = String.valueOf(annotator.classify(testImage));
-                writer.write(fileName +" " +classification +"\n");
+                classification = files[i].getName().getBaseName()
+                        +" "
+                        +annotator.classify(unlabeledTestSet.get(i)).getPredictedClasses().iterator().next();
+                writer.println(classification);
             }
             writer.close();
-            System.out.println("Successfully written Run3 Classification Results to " +nameOfResultsFile +" located at " +outputFile.getPath());
+            System.out.println("Successfully written Run3 Classification Results to '" +outputFile.getName() +"' located at '" +outputFile.getPath() +"'");
         } catch (IOException e) {
             System.out.println("Cannot Write Run3 Results to File!");
         }
     }
-
 }
