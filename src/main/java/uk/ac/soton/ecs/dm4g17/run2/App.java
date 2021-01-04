@@ -46,23 +46,29 @@ public class App {
 
         //Adding files to VFSDatasets
         VFSGroupDataset<FImage> trainingData = new VFSGroupDataset<>("C:\\Users\\Test\\Desktop\\training", ImageUtilities.FIMAGE_READER);
+        System.out.println("Training data file added to VFSDatasets");
         VFSListDataset<FImage> testingData = new VFSListDataset<>(testFile.getPath(), ImageUtilities.FIMAGE_READER);
+        System.out.println("Testing data file added to VFSDatasets");
 
         //making a patch extractor
         ExtractPatches ep = new ExtractPatches(8,4);
+        System.out.println("Patch extractor object made");
         Identifier idnt = new Identifier(trainingData,ep);
+        System.out.println("Identifier object made");
         //making an assigner
         HardAssigner<float[], float[], IntFloatPair> assigner =
                 idnt.trainQuantiser();
 
+        System.out.println("Hard assigner object made");
         // construct an instance of our BoVWExtractor
         FeatureExtractor<SparseIntFV, FImage> extractor = new BoVWExtractor(ep, assigner);
-
+        System.out.println("Instance of BoVWExtractor made");
         //construct and train a linear classifier
         LiblinearAnnotator<FImage, String> ann = new LiblinearAnnotator<FImage, String>(
                 extractor, LiblinearAnnotator.Mode.MULTICLASS, SolverType.L2R_L2LOSS_SVC, 1.0, 0.00001);
+        System.out.println("LibLinear classifier constructed");
         ann.train(trainingData);
-
+        System.out.println("LibLinear classifier trained");
         //Needs code for the mf comparison
 
     }
@@ -75,21 +81,26 @@ public class App {
         List<FImage> patchesOfImage;
 
         //Bag-of-Visual-Words extractor
+
         public BoVWExtractor(ExtractPatches ep, HardAssigner<float[], float[], IntFloatPair> assigner)
         {
             this.ep = ep;
             this.assigner = assigner;
+            System.out.println("BoVWExtractor constructor made");
         }
 
         //Extracts features from each image and builds Bag-Of-Visual-Words around it
         public SparseIntFV extractFeature(FImage image) {
-
+        System.out.println("extractFeatures() method called");
             SparseIntFV sparseIntFV;
             //Bag-Of-Visual-Words
-            BagOfVisualWords<float[]> bagOfVisualWords = new BagOfVisualWords<>(assigner);
 
+            BagOfVisualWords<float[]> bagOfVisualWords = new BagOfVisualWords<>(assigner);
+            System.out.println("Bag-of-Visual-Words made");
             this.keypointList = new MemoryLocalFeatureList<>();
+            System.out.println("Keypoint list made");
             this.patchesOfImage = ep.getExtractedPatches(image);
+            System.out.println("List of patches of images made");
             for (FImage patch : patchesOfImage)
             {
                 //not sure if I got the right float vector of the image
@@ -99,6 +110,7 @@ public class App {
             }
 
             sparseIntFV = bagOfVisualWords.aggregate(keypointList);
+            System.out.println("extractFeature method returns SpareIntFv object");
             return sparseIntFV;
         }
     }
