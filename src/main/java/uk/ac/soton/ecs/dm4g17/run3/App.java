@@ -91,7 +91,7 @@ public class App {
         System.out.println("Size of testing class: " + testingData.numInstances());
 
         GroupedDataset<String, ListDataset<FImage>, FImage> groupedDataset = GroupSampler.sample(trainingData, 15, false);
-        GroupedRandomSplitter<String, FImage> splits = new GroupedRandomSplitter<String, FImage>(groupedDataset, 12, 0, 3);
+        GroupedRandomSplitter<String, FImage> splits = new GroupedRandomSplitter<String, FImage>(groupedDataset, 40, 0, 20);
 
         GroupedDataset<String, ListDataset<FImage>, FImage> trainingSet    = splits.getTrainingDataset();
         GroupedDataset<String, ListDataset<FImage>, FImage> testSet         = splits.getTestDataset();
@@ -149,7 +149,7 @@ public class App {
         System.out.println(HKMresult.getDetailReport());
 
         //System.out.println("Training time for PHOWExtractor: " +totalTimePHOWExtractor +"s");
-        System.out.println("Training time for PHOWExtractor: " +totalTimeHKMExtractor +"s");
+        System.out.println("Training time for HKMExtractor: " +totalTimeHKMExtractor +"s");
     }
 
     //Performs K-Means Clustering on a sample of SIFT features in order to build a HardAssigner that can assign features to identifiers.
