@@ -106,7 +106,7 @@ public class App {
         // Iterate through the training images and run our classifier on them
         // Print our results to the created run2.txt file
         for(int i=0; i < testingData.size(); i++) {
-            result = files[i].getName().getBaseName()+" "+knn.classify(testingData.get(i)).getPredictedClasses().iterator().next();
+            result = files[i].getName().getBaseName()+" "+ann.classify(testingData.get(i)).getPredictedClasses().iterator().next();
 
             txtPrinter.println(result);
         }
