@@ -101,8 +101,9 @@ public class Run1 {
 
 		
         // Split the training & testing datasets into training, validation and testing subsets 
-        GroupedRandomSplitter<String, FImage> splitter = new GroupedRandomSplitter<String,FImage>(trainingData, 10, 0, 10);
-        
+        GroupedRandomSplitter<String, FImage> splitter = new GroupedRandomSplitter<String,FImage>(trainingData, 80, 0, 20);
+        GroupedDataset<String, ListDataset<FImage>, FImage> testSet  = splitter.getTestDataset();
+
         // Creating an instance of the TinyImage class
         // Allows us to extract the centre of the images for resizing to 16x16
         FeatureExtractor<DoubleFV, FImage> tinyImage = new TinyImage();
@@ -116,7 +117,20 @@ public class Run1 {
         knn.train(splitter.getTrainingDataset());
         
                
-        // Creates a file named run1.txt where we write our predictions for each run
+        // Find and print the accuracy of our KNN classifier
+        // Help from chapter 12 of OpenIMAJ tutorial
+        ClassificationEvaluator<CMResult<String>, String, FImage> knnResult = new ClassificationEvaluator<CMResult<String>, String, FImage>(
+                knn, testSet, new CMAnalyser<FImage, String>(CMAnalyser.Strategy.SINGLE));
+
+        System.out.println("Starting evaluation");
+        Map<FImage, ClassificationResult<String>> knnGuesses = knnResult.evaluate();
+
+        System.out.println("Analysing results");
+        CMResult<String> knnScore = knnResult.analyse(knnGuesses);
+        System.out.println(knnScore.getDetailReport());
+
+        
+         // Creates a file named run1.txt where we write our predictions for each run
         File run1File = new File ("/COMP3204_CW3/run1.txt");
         PrintWriter txtPrinter = new PrintWriter("run1.txt");
 
@@ -130,6 +144,7 @@ public class Run1 {
         	result = files[i].getName().getBaseName()+" "+knn.classify(testingData.get(i)).getPredictedClasses().iterator().next();
         
 			txtPrinter.println(result);
+			
         }
         // Close the stream
         txtPrinter.close();
