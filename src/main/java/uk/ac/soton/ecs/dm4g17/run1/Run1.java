@@ -2,6 +2,7 @@ package uk.ac.soton.ecs.dm4g17.run1;
 
 import org.apache.commons.vfs2.FileObject;
 
+
 import org.apache.commons.vfs2.FileSystemException;
 import org.openimaj.data.dataset.GroupedDataset;
 import org.openimaj.data.dataset.ListDataset;
@@ -44,8 +45,7 @@ public class Run1 {
     Run #1: You should develop a simple k-nearest-neighbour classifier using the “tiny image” feature.
 
     The “tiny image” feature is one of the simplest possible image representations.
-    One simply crops each image to a square about the centre,
-      and then resizes it to a small, fixed resolution (we recommend 16x16).
+    One simply crops each image to a square about the centre, and then resizes it to a small, fixed resolution (we recommend 16x16).
     The pixel values can be packed into a vector by concatenating each image row.
     It tends to work slightly better if the tiny image is made to have zero mean and unit length.
     You can choose the optimal k-value for the classifier.
@@ -75,29 +75,7 @@ public class Run1 {
         VFSGroupDataset<FImage> trainingData = new VFSGroupDataset<>(trainingFile.getPath(), ImageUtilities.FIMAGE_READER);
         VFSListDataset<FImage> testingData = new VFSListDataset<>(testingFile.getPath(), ImageUtilities.FIMAGE_READER);
         
-        // Used to ensure that there are 1500 images in the training set & 2985 testing images
-        //System.out.println(trainingData.numInstances());
-        //System.out.println(testingData.numInstances());
-
-        // Needed otherwise training set appears to be only 15 due to scene sub-folders
-//       ArrayList<FImage> trainingImages = new ArrayList<FImage>();
-//        ArrayList<String> trainingScenes = new ArrayList<String>();
-        
-        // Loop through images/scenes within sub directories and add them to an ArrayList
-//             for(String scenes : trainingData.getGroups()) {
-//        	
-//        	    trainingScenes.add(scenes);
-//
-//       // Adds every image found in each sub directory within the training folder to an ArrayList
-//       	    for(FImage image : trainingData.getInstances(scenes)) {
-//        		trainingImages.add(image);
-//       	}
-//        }
-         
-        //System.out.println(trainingData.getGroups().size());
-        //System.out.println(testingData.size());
-        //System.out.println(trainingImages.size());
-        //System.out.println(trainingScenes.size());
+     
 
 		
         // Split the training & testing datasets into training, validation and testing subsets 
@@ -119,14 +97,14 @@ public class Run1 {
                
         // Find and print the accuracy of our KNN classifier
         // Help from chapter 12 of OpenIMAJ tutorial
-        ClassificationEvaluator<CMResult<String>, String, FImage> knnResult = new ClassificationEvaluator<CMResult<String>, String, FImage>(
+        ClassificationEvaluator<CMResult<String>, String, FImage> knnEvaluator = new ClassificationEvaluator<CMResult<String>, String, FImage>(
                 knn, testSet, new CMAnalyser<FImage, String>(CMAnalyser.Strategy.SINGLE));
 
         System.out.println("Starting evaluation");
-        Map<FImage, ClassificationResult<String>> knnGuesses = knnResult.evaluate();
+        Map<FImage, ClassificationResult<String>> knnGuesses = knnEvaluator.evaluate();
 
         System.out.println("Analysing results");
-        CMResult<String> knnScore = knnResult.analyse(knnGuesses);
+        CMResult<String> knnScore = knnEvaluator.analyse(knnGuesses);
         System.out.println(knnScore.getDetailReport());
 
         
@@ -152,5 +130,28 @@ public class Run1 {
     
 }
     
-    
-    
+   
+   
+   // Used to ensure that there are 1500 images in the training set & 2985 testing images
+        //System.out.println(trainingData.numInstances());
+        //System.out.println(testingData.numInstances());
+
+        // Needed otherwise training set appears to be only 15 due to scene sub-folders
+//       ArrayList<FImage> trainingImages = new ArrayList<FImage>();
+//        ArrayList<String> trainingScenes = new ArrayList<String>();
+        
+        // Loop through images/scenes within sub directories and add them to an ArrayList
+//             for(String scenes : trainingData.getGroups()) {
+//        	
+//        	    trainingScenes.add(scenes);
+//
+//       // Adds every image found in each sub directory within the training folder to an ArrayList
+//       	    for(FImage image : trainingData.getInstances(scenes)) {
+//        		trainingImages.add(image);
+//       	}
+//        }
+         
+        //System.out.println(trainingData.getGroups().size());
+        //System.out.println(testingData.size());
+        //System.out.println(trainingImages.size());
+        //System.out.println(trainingScenes.size());

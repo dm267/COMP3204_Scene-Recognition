@@ -1,6 +1,7 @@
 package uk.ac.soton.ecs.dm4g17.run1; 
 
 import org.openimaj.feature.DoubleFV;
+
 import org.openimaj.feature.FeatureExtractor;
 import org.openimaj.image.FImage;
 import org.openimaj.image.processing.resize.ResizeProcessor;
