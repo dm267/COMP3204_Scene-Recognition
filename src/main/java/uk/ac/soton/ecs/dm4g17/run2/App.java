@@ -2,6 +2,7 @@ package uk.ac.soton.ecs.dm4g17.run2;
 
 import afu.org.checkerframework.checker.igj.qual.I;
 import de.bwaldvogel.liblinear.SolverType;
+import org.apache.commons.vfs2.FileObject;
 import org.openimaj.data.DataSource;
 import org.openimaj.data.FloatArrayBackedDataSource;
 import org.openimaj.data.dataset.GroupedDataset;
@@ -36,6 +37,7 @@ import org.springframework.util.ResourceUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -92,6 +94,24 @@ public class App {
         System.out.println("Analysing results");
         CMResult<String> HKMresult = HKMeval.analyse(HKMguesses);
         System.out.println(HKMresult.getDetailReport());
+
+        // Creates a file named run2.txt where we write our predictions for each run
+        File run2File = new File ("/COMP3204_CW3/run2.txt");
+        PrintWriter txtPrinter = new PrintWriter("run2.txt");
+
+        // Allows us to iterate through the testing dataset classes
+        String result;
+        FileObject[] files = testingData.getFileObjects();
+
+        // Iterate through the training images and run our classifier on them
+        // Print our results to the created run2.txt file
+        for(int i=0; i < testingData.size(); i++) {
+            result = files[i].getName().getBaseName()+" "+knn.classify(testingData.get(i)).getPredictedClasses().iterator().next();
+
+            txtPrinter.println(result);
+        }
+        // Close the stream
+        txtPrinter.close();
 
     }
 
