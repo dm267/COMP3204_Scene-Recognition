@@ -6,7 +6,10 @@ import org.openimaj.data.DataSource;
 import org.openimaj.data.FloatArrayBackedDataSource;
 import org.openimaj.data.dataset.VFSGroupDataset;
 import org.openimaj.data.dataset.VFSListDataset;
+import org.openimaj.experiment.evaluation.classification.ClassificationEvaluator;
+import org.openimaj.experiment.evaluation.classification.ClassificationResult;
 import org.openimaj.experiment.evaluation.classification.analysers.confusionmatrix.CMAnalyser;
+import org.openimaj.experiment.evaluation.classification.analysers.confusionmatrix.CMResult;
 import org.openimaj.feature.DoubleFV;
 import org.openimaj.feature.FeatureExtractor;
 import org.openimaj.feature.FloatFV;
@@ -32,6 +35,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class App {
     public static void main( String[] args ) throws IOException {
@@ -70,6 +74,17 @@ public class App {
         ann.train(trainingData);
         System.out.println("LibLinear classifier trained");
         //Needs code for the mf comparison
+
+        System.out.println("Starting classification");
+        ClassificationEvaluator<CMResult<String>, String, FImage> HKMeval = new ClassificationEvaluator<CMResult<String>, String, FImage>(
+                ann, trainingData, new CMAnalyser<FImage, String>(CMAnalyser.Strategy.SINGLE));
+
+        System.out.println("Starting evaluation");
+        Map<FImage, ClassificationResult<String>> HKMguesses = HKMeval.evaluate();
+
+        System.out.println("Analysing results");
+        CMResult<String> HKMresult = HKMeval.analyse(HKMguesses);
+        System.out.println(HKMresult.getDetailReport());
 
     }
 

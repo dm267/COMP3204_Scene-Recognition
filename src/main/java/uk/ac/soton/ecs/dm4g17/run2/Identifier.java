@@ -34,6 +34,7 @@ public class Identifier {
     {
         LocalFeatureList<FloatKeypoint> allKeys =
                 new MemoryLocalFeatureList<>();
+        //Iterates through the sample dataset and extracting the patches and adding them
         for(FImage img: dataset)
         {
             LocalFeatureList<FloatKeypoint> keypointList;
@@ -52,6 +53,7 @@ public class Identifier {
             allKeys.addAll(keypointList);
         }
         System.out.println("Features extracted");
+        //Extracts the first 10000 keypoints
         if (allKeys.size() > 10000)
         {
             allKeys = allKeys.subList(0, 10000);
