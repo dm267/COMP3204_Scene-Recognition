@@ -2,6 +2,7 @@ package uk.ac.soton.ecs.dm4g17.run2;
 
 import org.openimaj.data.DataSource;
 import org.openimaj.data.dataset.VFSGroupDataset;
+import org.openimaj.experiment.dataset.split.GroupedRandomSplitter;
 import org.openimaj.feature.local.data.LocalFeatureListDataSource;
 import org.openimaj.feature.local.list.LocalFeatureList;
 import org.openimaj.feature.local.list.MemoryLocalFeatureList;
@@ -16,12 +17,12 @@ import java.util.List;
 
 public class Identifier {
 
-    private VFSGroupDataset<FImage> dataset;
+    private GroupedRandomSplitter<String, FImage> splits;
     private ExtractPatches extractPatches;
 
-    public Identifier(VFSGroupDataset<FImage> dataset, ExtractPatches extractPatches)
+    public Identifier(GroupedRandomSplitter<String, FImage> splits, ExtractPatches extractPatches)
     {
-        this.dataset = dataset;
+        this.splits = splits;
         this.extractPatches = extractPatches;
         System.out.println("Identifier constructor made");
     }
@@ -35,7 +36,7 @@ public class Identifier {
         LocalFeatureList<FloatKeypoint> allKeys =
                 new MemoryLocalFeatureList<>();
         //Iterates through the sample dataset and extracting the patches and adding them
-        for(FImage img: dataset)
+        for(FImage img: splits.getTrainingDataset())
         {
             LocalFeatureList<FloatKeypoint> keypointList;
             List<FImage> patchesOfImage;

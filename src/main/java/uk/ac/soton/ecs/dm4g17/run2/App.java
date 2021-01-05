@@ -4,8 +4,12 @@ import afu.org.checkerframework.checker.igj.qual.I;
 import de.bwaldvogel.liblinear.SolverType;
 import org.openimaj.data.DataSource;
 import org.openimaj.data.FloatArrayBackedDataSource;
+import org.openimaj.data.dataset.GroupedDataset;
+import org.openimaj.data.dataset.ListDataset;
 import org.openimaj.data.dataset.VFSGroupDataset;
 import org.openimaj.data.dataset.VFSListDataset;
+import org.openimaj.experiment.dataset.sampling.GroupSampler;
+import org.openimaj.experiment.dataset.split.GroupedRandomSplitter;
 import org.openimaj.experiment.evaluation.classification.ClassificationEvaluator;
 import org.openimaj.experiment.evaluation.classification.ClassificationResult;
 import org.openimaj.experiment.evaluation.classification.analysers.confusionmatrix.CMAnalyser;
@@ -54,10 +58,13 @@ public class App {
         VFSListDataset<FImage> testingData = new VFSListDataset<>("C:\\Users\\Test\\Desktop\\testing", ImageUtilities.FIMAGE_READER);
         System.out.println("Testing data file added to VFSDatasets");
 
+        GroupedDataset<String, ListDataset<FImage>, FImage> groupedDataset = GroupSampler.sample(trainingData, 15, false);
+        GroupedRandomSplitter<String, FImage> splits = new GroupedRandomSplitter<String, FImage>(groupedDataset, 80, 0, 20);
+
         //making a patch extractor
         ExtractPatches ep = new ExtractPatches(8,4);
         System.out.println("Patch extractor object made");
-        Identifier idnt = new Identifier(trainingData,ep);
+        Identifier idnt = new Identifier(splits,ep);
         System.out.println("Identifier object made");
         //making an assigner
         HardAssigner<float[], float[], IntFloatPair> assigner =
@@ -71,13 +78,13 @@ public class App {
         LiblinearAnnotator<FImage, String> ann = new LiblinearAnnotator<FImage, String>(
                 extractor, LiblinearAnnotator.Mode.MULTICLASS, SolverType.L2R_L2LOSS_SVC, 1.0, 0.00001);
         System.out.println("LibLinear classifier constructed");
-        ann.train(trainingData);
+        ann.train(splits.getTrainingDataset());
         System.out.println("LibLinear classifier trained");
         //Needs code for the mf comparison
 
         System.out.println("Starting classification");
         ClassificationEvaluator<CMResult<String>, String, FImage> HKMeval = new ClassificationEvaluator<CMResult<String>, String, FImage>(
-                ann, trainingData, new CMAnalyser<FImage, String>(CMAnalyser.Strategy.SINGLE));
+                ann, splits.getTestDataset(), new CMAnalyser<FImage, String>(CMAnalyser.Strategy.SINGLE));
 
         System.out.println("Starting evaluation");
         Map<FImage, ClassificationResult<String>> HKMguesses = HKMeval.evaluate();
