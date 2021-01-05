@@ -55,8 +55,6 @@ public class App {
         setupClass();
     }
 
-
-
     public static void setupClass() throws FileSystemException {
 
         System.out.println("Run 3 Initiated...");
@@ -64,9 +62,6 @@ public class App {
         //Adding files to VFSDatasets from their respective URL.
         System.out.println("Downloading datasets..");
         VFSGroupDataset<FImage> trainingData = new VFSGroupDataset<FImage>("C:\\Users\\Test\\Desktop\\training", ImageUtilities.FIMAGE_READER);
-        //VFSGroupDataset includes each instance with a training label and also its expected name therefore we need to remove all training instances
-        //trainingData.remove("training");
-
         VFSListDataset<FImage> testingData   = new VFSListDataset<FImage>("C:\\Users\\Test\\Desktop\\testing", ImageUtilities.FIMAGE_READER);
         System.out.println("Datasets downloaded.");
 
@@ -79,7 +74,7 @@ public class App {
         GroupedDataset<String, ListDataset<FImage>, FImage> trainingSet     = splits.getTrainingDataset();
         GroupedDataset<String, ListDataset<FImage>, FImage> testSet         = splits.getTestDataset();
 
-        //Try step=4 & binsize=8
+        //Binsize of 4&8 appear to me most accurate
         DenseSIFT denseSIFT = new DenseSIFT(4, 8);
         PyramidDenseSIFT<FImage> pyramidDenseSIFT = new PyramidDenseSIFT<FImage>(denseSIFT, 6f, 2,4,6,8);
 
@@ -197,7 +192,6 @@ public class App {
     //Tests classifier on test dataset
     public static void testClassifier(LiblinearAnnotator<FImage, String> annotator, GroupedRandomSplitter<String, FImage> splits, VFSListDataset<FImage> unlabeledTestSet)
     {
-
         System.out.println("Training Model for Unlabeled Test Set...");
         annotator.train(splits.getTrainingDataset());
         System.out.println("Model Trained Successfully.");
@@ -206,7 +200,6 @@ public class App {
 
         //Strings
         String classification;
-        String fileName;
 
         //File to write
         File outputFile = new File("/COMP3204_CW3/run3.txt");
@@ -222,6 +215,7 @@ public class App {
                 classification = files[i].getName().getBaseName()
                         +" "
                         +annotator.classify(unlabeledTestSet.get(i)).getPredictedClasses().iterator().next();
+                System.out.println("Classification " +i +" = " +classification);
                 writer.println(classification);
             }
             writer.close();
