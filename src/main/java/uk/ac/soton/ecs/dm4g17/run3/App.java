@@ -189,7 +189,7 @@ public class App {
         return (endTime - startTime) / 100000000;
     }
 
-    //Tests classifier on test dataset
+    //Tests classifier on test dataset and pipes results into a .txt file
     public static void testClassifier(LiblinearAnnotator<FImage, String> annotator, GroupedRandomSplitter<String, FImage> splits, VFSListDataset<FImage> unlabeledTestSet)
     {
         System.out.println("Training Model for Unlabeled Test Set...");
