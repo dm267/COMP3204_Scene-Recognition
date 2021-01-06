@@ -2,7 +2,6 @@ package uk.ac.soton.ecs.dm4g17.run3;
 
 import de.bwaldvogel.liblinear.SolverType;
 import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemException;
 import org.openimaj.data.DataSource;
 import org.openimaj.data.dataset.*;
 import org.openimaj.experiment.dataset.sampling.GroupSampler;
@@ -17,24 +16,15 @@ import org.openimaj.feature.FeatureExtractor;
 import org.openimaj.feature.SparseIntFV;
 import org.openimaj.feature.local.data.LocalFeatureListDataSource;
 import org.openimaj.feature.local.list.LocalFeatureList;
-import org.openimaj.image.DisplayUtilities;
 import org.openimaj.image.FImage;
 import org.openimaj.image.ImageUtilities;
-import org.openimaj.image.MBFImage;
-import org.openimaj.image.annotation.evaluation.datasets.Caltech101;
-import org.openimaj.image.colour.ColourSpace;
-import org.openimaj.image.colour.RGBColour;
 import org.openimaj.image.feature.dense.gradient.dsift.ByteDSIFTKeypoint;
 import org.openimaj.image.feature.dense.gradient.dsift.DenseSIFT;
 import org.openimaj.image.feature.dense.gradient.dsift.PyramidDenseSIFT;
 import org.openimaj.image.feature.local.aggregate.BagOfVisualWords;
 import org.openimaj.image.feature.local.aggregate.BlockSpatialAggregator;
-import org.openimaj.image.processing.convolution.FGaussianConvolve;
-import org.openimaj.image.typography.hershey.HersheyFont;
 import org.openimaj.io.IOUtils;
-import org.openimaj.ml.annotation.bayes.NaiveBayesAnnotator;
 import org.openimaj.ml.annotation.linear.LiblinearAnnotator;
-import org.openimaj.ml.annotation.linear.LinearSVMAnnotator;
 import org.openimaj.ml.clustering.ByteCentroidsResult;
 import org.openimaj.ml.clustering.assignment.HardAssigner;
 import org.openimaj.ml.clustering.kmeans.ByteKMeans;
@@ -46,24 +36,28 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 
 public class App {
 
-    public static void main( String[] args ) throws FileSystemException {
+    public static void main( String[] args ) throws IOException {
         setupClass();
     }
 
-    public static void setupClass() throws FileSystemException {
-
+    public static void setupClass() throws IOException{
         System.out.println("Run 3 Initiated...");
 
-        //Adding files to VFSDatasets from their respective URL.
-        System.out.println("Downloading datasets..");
-        VFSGroupDataset<FImage> trainingData = new VFSGroupDataset<FImage>("C:\\Users\\Test\\Desktop\\training", ImageUtilities.FIMAGE_READER);
-        VFSListDataset<FImage> testingData   = new VFSListDataset<FImage>("C:\\Users\\Test\\Desktop\\testing", ImageUtilities.FIMAGE_READER);
-        System.out.println("Datasets downloaded.");
+        // Retrieving files
+        File trainingFile = ResourceUtils.getFile("classpath:training");
+        File testingFile = ResourceUtils.getFile("classpath:testing");
+
+        // Files are found
+        System.out.println("File Found : " + trainingFile.exists());
+        System.out.println("File Found : " + testingFile.exists());
+
+        // Adding files to VFSDatasets
+        VFSGroupDataset<FImage> trainingData = new VFSGroupDataset<>(trainingFile.getPath(), ImageUtilities.FIMAGE_READER);
+        VFSListDataset<FImage> testingData = new VFSListDataset<>(testingFile.getPath(), ImageUtilities.FIMAGE_READER);
 
         System.out.println("Size of training class: " + trainingData.numInstances());
         System.out.println("Size of testing class: "  + testingData.numInstances());

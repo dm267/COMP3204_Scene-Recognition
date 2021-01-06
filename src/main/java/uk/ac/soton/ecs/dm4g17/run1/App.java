@@ -1,8 +1,6 @@
 package uk.ac.soton.ecs.dm4g17.run1;
 
 import org.apache.commons.vfs2.FileObject;
-
-import org.apache.commons.vfs2.FileSystemException;
 import org.openimaj.data.dataset.GroupedDataset;
 import org.openimaj.data.dataset.ListDataset;
 import org.openimaj.data.dataset.VFSGroupDataset;
@@ -15,41 +13,18 @@ import org.openimaj.experiment.evaluation.classification.analysers.confusionmatr
 import org.openimaj.feature.DoubleFV;
 import org.openimaj.feature.DoubleFVComparison;
 import org.openimaj.feature.FeatureExtractor;
-import org.openimaj.feature.FloatFV;
-import org.openimaj.feature.FloatFVComparison;
 import org.openimaj.image.FImage;
 import org.openimaj.image.ImageUtilities;
-import org.openimaj.image.processing.resize.ResizeProcessor;
-import org.openimaj.ml.annotation.Annotated;
 import org.openimaj.ml.annotation.basic.KNNAnnotator;
 import org.springframework.util.ResourceUtils;
 
-import afu.org.checkerframework.checker.units.qual.K;
-
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.lang.reflect.Array;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Map;
 
 
 public class App {
-
-    /*
-    Run #1: You should develop a simple k-nearest-neighbour classifier using the “tiny image” feature.
-
-    The “tiny image” feature is one of the simplest possible image representations.
-    One simply crops each image to a square about the centre,
-      and then resizes it to a small, fixed resolution (we recommend 16x16).
-    The pixel values can be packed into a vector by concatenating each image row.
-    It tends to work slightly better if the tiny image is made to have zero mean and unit length.
-    You can choose the optimal k-value for the classifier.
-    */
 
     public static void main( String[] args ) throws IOException {
 
@@ -74,31 +49,6 @@ public class App {
         // Adding files to VFSDatasets
         VFSGroupDataset<FImage> trainingData = new VFSGroupDataset<>(trainingFile.getPath(), ImageUtilities.FIMAGE_READER);
         VFSListDataset<FImage> testingData = new VFSListDataset<>(testingFile.getPath(), ImageUtilities.FIMAGE_READER);
-
-        // Used to ensure that there are 1500 images in the training set & 2985 testing images
-        //System.out.println(trainingData.numInstances());
-        //System.out.println(testingData.numInstances());
-
-        // Needed otherwise training set appears to be only 15 due to scene sub-folders
-//       ArrayList<FImage> trainingImages = new ArrayList<FImage>();
-//        ArrayList<String> trainingScenes = new ArrayList<String>();
-
-        // Loop through images/scenes within sub directories and add them to an ArrayList
-//             for(String scenes : trainingData.getGroups()) {
-//
-//        	    trainingScenes.add(scenes);
-//
-//       // Adds every image found in each sub directory within the training folder to an ArrayList
-//       	    for(FImage image : trainingData.getInstances(scenes)) {
-//        		trainingImages.add(image);
-//       	}
-//        }
-
-        //System.out.println(trainingData.getGroups().size());
-        //System.out.println(testingData.size());
-        //System.out.println(trainingImages.size());
-        //System.out.println(trainingScenes.size());
-
 
         // Split the training & testing datasets into training, validation and testing subsets
         GroupedRandomSplitter<String, FImage> splitter = new GroupedRandomSplitter<String,FImage>(trainingData, 80, 0, 20);

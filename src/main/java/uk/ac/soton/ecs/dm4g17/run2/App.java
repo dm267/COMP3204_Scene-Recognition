@@ -1,10 +1,7 @@
 package uk.ac.soton.ecs.dm4g17.run2;
 
-import afu.org.checkerframework.checker.igj.qual.I;
 import de.bwaldvogel.liblinear.SolverType;
 import org.apache.commons.vfs2.FileObject;
-import org.openimaj.data.DataSource;
-import org.openimaj.data.FloatArrayBackedDataSource;
 import org.openimaj.data.dataset.GroupedDataset;
 import org.openimaj.data.dataset.ListDataset;
 import org.openimaj.data.dataset.VFSGroupDataset;
@@ -15,13 +12,8 @@ import org.openimaj.experiment.evaluation.classification.ClassificationEvaluator
 import org.openimaj.experiment.evaluation.classification.ClassificationResult;
 import org.openimaj.experiment.evaluation.classification.analysers.confusionmatrix.CMAnalyser;
 import org.openimaj.experiment.evaluation.classification.analysers.confusionmatrix.CMResult;
-import org.openimaj.feature.DoubleFV;
 import org.openimaj.feature.FeatureExtractor;
-import org.openimaj.feature.FloatFV;
 import org.openimaj.feature.SparseIntFV;
-import org.openimaj.feature.local.LocalFeature;
-import org.openimaj.feature.local.SpatialLocation;
-import org.openimaj.feature.local.data.LocalFeatureListDataSource;
 import org.openimaj.feature.local.list.LocalFeatureList;
 import org.openimaj.feature.local.list.MemoryLocalFeatureList;
 import org.openimaj.image.FImage;
@@ -29,36 +21,31 @@ import org.openimaj.image.ImageUtilities;
 import org.openimaj.image.feature.local.aggregate.BagOfVisualWords;
 import org.openimaj.image.feature.local.keypoints.FloatKeypoint;
 import org.openimaj.ml.annotation.linear.LiblinearAnnotator;
-import org.openimaj.ml.clustering.FloatCentroidsResult;
 import org.openimaj.ml.clustering.assignment.HardAssigner;
-import org.openimaj.ml.clustering.kmeans.FloatKMeans;
 import org.openimaj.util.pair.IntFloatPair;
 import org.springframework.util.ResourceUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 public class App {
     public static void main( String[] args ) throws IOException {
+        System.out.println("Run 2 Initiated...");
 
-        //Retrieving files
-        File trainFile = ResourceUtils.getFile("classpath:training.zip");
-        File testFile = ResourceUtils.getFile("classpath:testing.zip");
+        /// Retrieving files
+        File trainingFile = ResourceUtils.getFile("classpath:training");
+        File testingFile = ResourceUtils.getFile("classpath:testing");
 
-        //Files are found
-        System.out.println("File Found : " + trainFile.exists());
-        System.out.println("File Found : " + testFile.exists());
+        // Files are found
+        System.out.println("File Found : " + trainingFile.exists());
+        System.out.println("File Found : " + testingFile.exists());
 
-        //Adding files to VFSDatasets
-        VFSGroupDataset<FImage> trainingData = new VFSGroupDataset<>("C:\\Users\\Test\\Desktop\\training", ImageUtilities.FIMAGE_READER);
-        System.out.println("Training data file added to VFSDatasets");
-        VFSListDataset<FImage> testingData = new VFSListDataset<>("C:\\Users\\Test\\Desktop\\testing", ImageUtilities.FIMAGE_READER);
-        System.out.println("Testing data file added to VFSDatasets");
+        // Adding files to VFSDatasets
+        VFSGroupDataset<FImage> trainingData = new VFSGroupDataset<>(trainingFile.getPath(), ImageUtilities.FIMAGE_READER);
+        VFSListDataset<FImage> testingData = new VFSListDataset<>(testingFile.getPath(), ImageUtilities.FIMAGE_READER);
 
         GroupedDataset<String, ListDataset<FImage>, FImage> groupedDataset = GroupSampler.sample(trainingData, 15, false);
         GroupedRandomSplitter<String, FImage> splits = new GroupedRandomSplitter<String, FImage>(groupedDataset, 80, 0, 20);
